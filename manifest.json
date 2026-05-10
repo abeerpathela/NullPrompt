@@ -1,24 +1,16 @@
 {
   "manifest_version": 3,
   "name": "NullPrompt",
-  "version": "1.0",
-  "description": "Zero-Trust Privacy Proxy for AI. Redacts sensitive data locally.",
-  "permissions": ["storage", "scripting"],
-  "host_permissions": ["<all_urls>"],
-  "action": {
-    "default_popup": "popup/popup.html"
-  },
+  "version": "1.1",
+  "description": "Unified Zero-Trust AI Privacy Shield",
+  "permissions": ["storage"],
+  "host_permissions": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content/content-bridge.js"],
-      "run_at": "document_start"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["content/engine-injector.js"],
-      "matches": ["<all_urls>"]
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "js": ["content/nullprompt-core.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ]
 }
