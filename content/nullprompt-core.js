@@ -1,6 +1,6 @@
 /**
  * NullPrompt Core Detection & Sanitization Engine
- * Supported Platforms: ChatGPT, Claude, Gemini
+ * Supported Platforms: ChatGPT, Claude
  */
 (function() {
     'use strict';
@@ -15,23 +15,20 @@
 
     // ------------------ NULLENGINE (PLACEHOLDER/REDACTION) ------------------
     const NullEngine = {
-        activeSensitives: new Map(), // maps actual value -> placeholder
-        reverseLookup: new Map(),   // maps placeholder -> actual value (for response restoration)
+        activeSensitives: new Map(),
+        reverseLookup: new Map(),
         counter: 0,
         isInternalMutation: false,
         lastActionTime: 0,
 
         getOrCreatePlaceholder: function(value, type) {
             if (NullEngine.activeSensitives.has(value)) {
-                console.log(">>> [NullPrompt] ATOMIC: Reusing placeholder for existing match:", value);
                 return NullEngine.activeSensitives.get(value);
             }
             NullEngine.counter++;
             const placeholder = `[NULL_${type.toUpperCase()}_${NullEngine.counter}]`;
             NullEngine.activeSensitives.set(value, placeholder);
             NullEngine.reverseLookup.set(placeholder, value);
-            console.log(">>> [NullPrompt] FULL SECRET MATCH:", value);
-            console.log(">>> [NullPrompt] SECRET PLACEHOLDER:", placeholder);  
             return placeholder;
         },
 
@@ -40,7 +37,6 @@
                 return text;
             }
             let sanitized = text;
-            // Apply replacements based on our findings
             currentFindings.forEach(finding => {
                 const placeholder = NullEngine.getOrCreatePlaceholder(
                     finding.value, 
@@ -71,29 +67,6 @@
             .replace(/'/g, "&#039;");
     }
 
-    function calculateEntropy(str) {
-        const len = str.length;
-        if (len === 0) return 0;
-        const freq = {};
-        for (let i = 0; i < len; i++) {
-            freq[str[i]] = (freq[str[i]] || 0) + 1;
-        }
-        let entropy = 0;
-        for (const char in freq) {
-            const p = freq[char] / len;
-            entropy -= p * Math.log2(p);
-        }
-        return entropy;
-    }
-
-    function hasCharacterDiversity(str) {
-        const hasLower = /[a-z]/.test(str);
-        const hasUpper = /[A-Z]/.test(str);
-        const hasDigit = /[0-9]/.test(str);
-        const hasSpecial = /[^a-zA-Z0-9]/.test(str);
-        return [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length >= 2;
-    }
-
     function luhnCheck(cardNumber) {
         const digits = cardNumber.replace(/\D/g, '');
         if (digits.length < 13 || digits.length > 19) return false;
@@ -113,13 +86,12 @@
     }
 
     function generatePromptHash(text) {
-        // Simple hash function for tracking processed prompts
         let hash = 0;
         if (text.length === 0) return hash;
         for (let i = 0; i < text.length; i++) {
             const char = text.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+            hash = hash & hash;
         }
         return hash.toString(36);
     }
@@ -190,7 +162,7 @@
             severity: 'High',
             confidence: 0.95,
             category: 'API Keys',
-            regex: /\bghp_[A-Za-z0-9]{36,}\b/gi
+            regex: /\bgh[psu]_[A-Za-z0-9]{35,}\b/gi
         },
         {
             id: 'google_api_key',
@@ -412,11 +384,9 @@
             currentNotificationEl.style.overflow = 'hidden';
             currentNotificationEl.style.animation = 'nullprompt-slidein 0.3s ease-out';
 
-            // Container
             const container = document.createElement('div');
             container.style.padding = '20px';
 
-            // Header
             const header = document.createElement('div');
             header.style.display = 'flex';
             header.style.alignItems = 'center';
@@ -454,7 +424,6 @@
             header.appendChild(titleDiv);
             container.appendChild(header);
 
-            // Summary
             const summaryLabel = document.createElement('div');
             summaryLabel.style.fontSize = '12px';
             summaryLabel.style.fontWeight = '600';
@@ -482,7 +451,6 @@
             summarySection.appendChild(summaryBox);
             container.appendChild(summarySection);
 
-            // Risk Level
             const riskSection = document.createElement('div');
             riskSection.style.display = 'flex';
             riskSection.style.alignItems = 'center';
@@ -519,7 +487,6 @@
             riskSection.appendChild(riskBadge);
             container.appendChild(riskSection);
 
-            // Buttons
             const buttonContainer = document.createElement('div');
             buttonContainer.style.display = 'grid';
             buttonContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
@@ -558,7 +525,6 @@
             cancelBtn.style.cursor = 'pointer';
             cancelBtn.textContent = 'Cancel';
 
-            // Button click listeners
             reviewBtn.addEventListener('click', () => removeNotification());
             sendBtn.addEventListener('click', () => removeNotification());
             cancelBtn.addEventListener('click', () => removeNotification());
@@ -594,11 +560,9 @@
             currentNotificationEl.style.overflow = 'hidden';
             currentNotificationEl.style.animation = 'nullprompt-slidein 0.3s ease-out';
 
-            // Container
             const container = document.createElement('div');
             container.style.padding = '20px';
 
-            // Header
             const header = document.createElement('div');
             header.style.display = 'flex';
             header.style.alignItems = 'center';
@@ -628,7 +592,6 @@
             header.appendChild(titleDiv);
             container.appendChild(header);
 
-            // Subtitle
             const subtitle = document.createElement('div');
             subtitle.style.fontSize = '16px';
             subtitle.style.color = '#e2e8f0';
@@ -636,7 +599,6 @@
             subtitle.textContent = 'Prompt protected successfully';
             container.appendChild(subtitle);
 
-            // Bullet points
             const pointsContainer = document.createElement('div');
             pointsContainer.style.display = 'flex';
             pointsContainer.style.flexDirection = 'column';
@@ -665,7 +627,6 @@
             currentNotificationEl.appendChild(container);
             document.body.appendChild(currentNotificationEl);
 
-            // Auto dismiss
             successNotificationTimeout = setTimeout(() => {
                 removeNotification();
             }, 4000);
@@ -680,7 +641,6 @@
             const riskLevel = getOverallRisk(findings);
             const promptHash = generatePromptHash(findings.map(f => f.value).join(''));
             
-            // Only show once per prompt
             if (notificationShownForHash === promptHash) {
                 return;
             }
@@ -690,7 +650,6 @@
         }
 
         function showSuccess(count, promptHash) {
-            // Only show once per prompt
             if (successShownForHash === promptHash) {
                 return;
             }
@@ -710,7 +669,7 @@
         };
     })();
 
-    // ------------------ INPUT MONITORING (with Paste/Drop Handling) ------------------
+    // ------------------ INPUT MONITORING ------------------
     let debounceTimer = null;
 
     function handleInput(text) {
@@ -730,7 +689,6 @@
         lastProcessedPromptHash = promptHash;
         currentFindings = scanText(fullText);
         
-        // Store findings for this prompt hash
         if (currentFindings.length > 0) {
             lastFindingsForHash.set(promptHash, [...currentFindings]);
         }
@@ -759,10 +717,8 @@
             e.preventDefault();
             e.stopImmediatePropagation();
             const rawText = (e.clipboardData || window.clipboardData).getData('text');
-            // First scan for findings so we know what to replace
             scanAndNotify(rawText);
             const sanitized = NullEngine.processText(rawText);
-            console.log(">>> [NullPrompt] PASTE INTERCEPTED:", rawText, "->", sanitized);
 
             NullEngine.isInternalMutation = true;
             NullEngine.lastActionTime = Date.now();
@@ -778,7 +734,6 @@
             const rawText = (e.dataTransfer || window.dataTransfer).getData('text');
             scanAndNotify(rawText);
             const sanitized = NullEngine.processText(rawText);
-            console.log(">>> [NullPrompt] DROP INTERCEPTED:", rawText, "->", sanitized);
 
             NullEngine.isInternalMutation = true;
             NullEngine.lastActionTime = Date.now();
@@ -799,8 +754,6 @@
             const text = e.target.value || e.target.innerText || e.target.textContent || '';
             handleInput(text);
         }, true);
-
-        console.log(">>> [NullPrompt] Attached input listener to", element);
     }
 
     // ------------------ DOM MONITOR ------------------
@@ -923,7 +876,6 @@
 
     // ------------------ NETWORK INTERCEPTION ------------------
     function monitorSubmissions() {
-        // Fetch interception
         const originalFetch = window.fetch;
         window.fetch = async function(...args) {
             const resource = args[0];
@@ -931,7 +883,6 @@
             const url = (typeof resource === 'string') ? resource : resource.url;  
             const method = (config?.method || resource?.method || 'GET').toUpperCase();
 
-            // Check if it's a target domain request (ChatGPT, Claude)
             const isTarget = (
                 url.includes('chatgpt.com') || 
                 url.includes('openai.com') || 
@@ -953,12 +904,10 @@
                     }
 
                     if (bodyText) {
-                        // First make sure we have current findings
                         if (currentFindings.length === 0) {
                             DOMMonitor.scanCurrentInputs();
                         }
                         
-                        // Get the prompt hash based on current inputs
                         const fullText = DOMMonitor.collectPromptText();
                         usedPromptHash = generatePromptHash(fullText.trim());
                         
@@ -966,14 +915,12 @@
 
                         if (sanitizedBody !== bodyText) {
                             hasSanitized = true;
-                            console.log(">>> [NullPrompt] Sanitized outgoing request to:", url);
                             if (typeof config?.body === 'string') {
                                 config.body = sanitizedBody;
                             } else if (resource instanceof Request) {
                                 const newRequest = new Request(resource, { ...config, body: sanitizedBody });
                                 const response = await originalFetch(newRequest);
                                 
-                                // Trigger success notification if we have findings for this prompt hash
                                 if (usedPromptHash && lastFindingsForHash.has(usedPromptHash)) {
                                     const findings = lastFindingsForHash.get(usedPromptHash);
                                     if (findings.length > 0) {
@@ -981,7 +928,6 @@
                                     }
                                 }
                                 
-                                // Intercept response to restore placeholders
                                 const responseClone = response.clone();
                                 const responseText = await responseClone.text();
                                 const restoredResponseText = NullEngine.restoreText(responseText);
@@ -995,13 +941,12 @@
                         }
                     }
                 } catch (e) {
-                    console.error(">>> [NullPrompt] Network interception error, passing original:", e);
+                    // Pass through original request if interception fails
                 }
             }
 
             const response = await originalFetch.apply(this, args);
             
-            // If we didn't trigger the success notification yet but we did sanitize, try to trigger now
             if (isTarget && hasSanitized && usedPromptHash && lastFindingsForHash.has(usedPromptHash)) {
                 const findings = lastFindingsForHash.get(usedPromptHash);
                 if (findings.length > 0) {
@@ -1009,13 +954,11 @@
                 }
             }
             
-            // Always try to restore text even if not intercepted just in case
             try {
                 const responseClone = response.clone();
                 const responseText = await responseClone.text();
                 const restoredResponseText = NullEngine.restoreText(responseText);
                 if (restoredResponseText !== responseText) {
-                    console.log(">>> [NullPrompt] Restored placeholders in response");
                     return new Response(restoredResponseText, {
                         status: response.status,
                         statusText: response.statusText,
@@ -1027,8 +970,6 @@
             }
             return response;
         };
-
-        console.log(">>> [NullPrompt] INTERCEPTOR ACTIVE ON FETCH");
     }
 
     // ------------------ INIT ------------------
@@ -1042,7 +983,6 @@
             monitorSubmissions();
             DOMMonitor.init();
         }
-        console.log('NullPrompt initialized successfully');
     }
 
     init();
