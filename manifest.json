@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "NullPrompt",
-  "version": "1.1",
+  "version": "1.1.0",
   "description": "Unified Zero-Trust AI Privacy Shield",
-  "permissions": ["storage"],
+  "permissions": ["activeTab"],
   "host_permissions": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
   "content_scripts": [
     {
@@ -12,5 +12,23 @@
       "run_at": "document_start",
       "world": "MAIN"
     }
-  ]
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; frame-src 'none'"
+  }
 }
