@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NullPrompt",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "Unified Zero-Trust AI Privacy Shield",
   "permissions": ["activeTab"],
   "host_permissions": [
