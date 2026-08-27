@@ -11,7 +11,7 @@ Built as a Manifest V3 Chrome Extension, NullPrompt uses in-browser request inte
 * Fetch + XMLHttpRequest interception
 * Sensitive data detection and redaction
 * Placeholder synthesis and secure reconstruction
-* Manifest V3 compliant
+* Manifest's V3 compliant
 * No telemetry, no logins, no cloud storage
 * Cross-site compatibility with modern AI platforms
 
